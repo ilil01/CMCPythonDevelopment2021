@@ -5,6 +5,8 @@
 
 import time
 import tkinter as tk
+import random
+import tkinter.messagebox
 
 class Application(tk.Frame):
     def __init__(self, master=None):
@@ -21,7 +23,25 @@ class Application(tk.Frame):
         self.createWidgets()
 
     def createWidgets(self):
+        """
+        +----+----+----+----+
+        |0   |1   |2   |3   |
+        +----+----+----+----+
+        |4   |5   |6   |7   |
+        +----+----+----+----+
+        |8   |9   |10  |11  |
+        +----+----+----+----+
+        |12  |13  |14  |15  |
+        +----+----+----+----+
+        """
         self.layout = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, None]
+        for i in range(len(self.layout)):
+            self.layout[i] = tk.StringVar(value = self.layout[i])
+        self.neighbours = [[1, 4], [0, 2, 5], [1, 3, 6], [2, 7], 
+                           [0, 5, 8], [1, 4, 6, 9], [2, 5, 7, 10], [3, 6, 11], 
+                           [4, 9, 12], [5, 8, 10, 13], [6, 9, 11, 14], [7, 10, 15],
+                           [8, 13], [9, 12, 14], [10, 13, 15], [11, 14]]
+        self.reshuffle()
 
         top=self.winfo_toplevel()
         top.rowconfigure(0, weight=1)
@@ -45,7 +65,6 @@ class Application(tk.Frame):
         """
 
         self.uullButton = tk.Button(self, textvariable = self.layout[0], command = lambda : self.move(0))
-#        self.uullButton.rowconfigure(0, weight = 1)
         self.uullButton.grid(row = 1, column = 0, sticky = 'SEWN')
         self.uulButton = tk.Button(self, textvariable = self.layout[1], command = lambda : self.move(1))
         self.uulButton.grid(row = 1, column = 1, sticky = 'SEWN')
@@ -82,10 +101,47 @@ class Application(tk.Frame):
         self.drrButton.grid(row = 4, column = 3, sticky = 'SEWN')
 
     def reshuffle(self):
-        pass
+        random.shuffle(self.layout)
+        while not self.finishable():
+            random.shuffle(self.layout)
 
     def move(self, index):
-        pass
+        i = -1
+        for idx in self.neighbours[index]:
+            if self.layout[idx].get() == '':
+                i = idx
+                break
+        if i != -1:
+            tmp = self.layout[i].get()
+            self.layout[i].set(self.layout[index].get())
+            self.layout[index].set(tmp)
+        if self.finished():
+            self.finish()
+
+    def finishable(self):
+        s = 0
+        e = 0
+        for i in range(len(self.layout)):
+            if self.layout[i].get() == '':
+                e = i // 4 + 1
+                continue
+            c = int(self.layout[i].get())
+            for j in range(i + 1, len(self.layout)):
+                if self.layout[j].get() != '' and int(self.layout[j].get()) < c:
+                    s += 1
+        return (s + e) % 2 == 0
+
+    def finished(self):
+        if self.layout[-1].get() != '':
+            return False
+        for i in range(len(self.layout) - 2):
+            if int(self.layout[i].get()) > int(self.layout[i + 1].get()):
+                return False
+        return True
+
+    def finish(self):
+        tk.messagebox.showinfo('Victory!', 'You are victorious!!!')
+        self.createWidgets()
 
 app = Application()
 app.master.title('15')
