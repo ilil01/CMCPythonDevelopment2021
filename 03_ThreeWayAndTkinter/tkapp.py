@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 '''
-Простой пример Tkinter
+Реализация пятнашек с использованием Tkinter
 '''
 
 import time
