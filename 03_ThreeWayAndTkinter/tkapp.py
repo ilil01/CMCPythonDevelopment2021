@@ -10,10 +10,22 @@ class Application(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
         self.grid(sticky = tk.N + tk.E + tk.S + tk.W)
+        self.rowconfigure(1, weight = 1)
+        self.rowconfigure(2, weight = 1)
+        self.rowconfigure(3, weight = 1)
+        self.rowconfigure(4, weight = 1)
+        self.columnconfigure(0, weight = 1)
+        self.columnconfigure(1, weight = 1)
+        self.columnconfigure(2, weight = 1)
+        self.columnconfigure(3, weight = 1)
         self.createWidgets()
 
     def createWidgets(self):
         self.layout = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, None]
+
+        top=self.winfo_toplevel()
+        top.rowconfigure(0, weight=1)
+        top.columnconfigure(0, weight=1)
 
         self.newButton = tk.Button(self, text = 'New', command = self.reshuffle, cursor = 'gumby')
         self.newButton.grid(row = 0, column = 0, columnspan = 2)
