@@ -1,5 +1,7 @@
 Задача 1 (головоломка): Напишите класс Application(tk.Frame) таким образом, чтобы приведённый ниже код создавал приложение с интерфейсной моделью как на картинке (цвета воспроизводить не надо).
+
 ![Alt text](http://uneex.org/LecturesCMC/PythonDevelopment2021/04_PublicRepositoryEvents?action=AttachFile&do=get&target=allinone.png)
+
 ```python3
 class App(Application):
     def createWidgets(self):
@@ -41,4 +43,5 @@ app.mainloop()
     * Перемещение курсора стрелками и Home/End
     * Перемещение курсора и получение фокуса кликом мыши
     * Удаление символа перед курсором 
+
 ![Alt text](http://uneex.org/LecturesCMC/PythonDevelopment2021/04_PublicRepositoryEvents?action=AttachFile&do=get&target=LabelEdit.gif)
