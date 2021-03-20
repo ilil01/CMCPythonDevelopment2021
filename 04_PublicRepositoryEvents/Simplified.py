@@ -4,12 +4,81 @@
 
 import time
 import tkinter as tk
-import tkinter.messagebox
+from tkinter.messagebox import showinfo
+import types
 
+def construct(obj, attr):
+    return lambda what, geo, **args: obj.constructField(attr, what, geo, **args)
 
 class Application(tk.Frame):
-    def __init__(self, master=None):
-        super().__init__(master)
+    def __init__(self, mast=None, **args):
+        super().__init__(mast)
+        if 'title' in args:
+            self.master.title(args['title'])
+
+        self.grid(sticky = 'NEWS')
+
+        top = self.winfo_toplevel()
+        top.rowconfigure(0, weight=1)
+        top.columnconfigure(0, weight=1)
+
+        self.rowconfigure(1, weight = 1)
+        self.rowconfigure(2, weight = 1)
+        self.columnconfigure(0, weight = 1)
+        self.columnconfigure(1, weight = 1)
+
+        self.createWidgets()
+    
+    def __getattr__(self, attr):
+        return lambda what, geo, **args: self.constructField(attr, what, geo, **args)
+
+    def constructField(self, attr, what, geo, **args):
+        setattr(self, attr, type(what.__name__ + 'Intermediate', (what,),\
+                {'__getattr__' : construct, 'constructField' : Application.constructField})(self, **args))
+        tmp = geo.split('/')
+        if len(tmp) == 1:
+            # no gravity
+            grab = 'NEWS'
+            tmp = geo
+        else:
+            grab = tmp[1]
+            tmp = tmp[0]
+        tmp = tmp.split(':')
+        rowchar = tmp[0].split('+')
+        colchar = tmp[1].split('+')
+
+        if len(rowchar) == 1:
+            # no height
+            height = 0
+        else:
+            height = int(rowchar[1])
+        rowchar = rowchar[0].split('.')
+        if len(rowchar) == 1:
+            # no rowweight
+            rowweight = 1
+        else:
+            rowweight = int(rowchar[1])
+        rown = int(rowchar[0])
+
+        if len(colchar) == 1:
+            # no height
+            width  = 0
+        else:
+            width  = int(colchar[1])
+        colchar = colchar[0].split('.')
+        if len(colchar) == 1:
+            # no colweight
+            colweight = 1
+        else:
+            colweight = int(colchar[1])
+        coln = int(colchar[0])
+
+        self.rowconfigure(rown, weight = rowweight)
+        self.columnconfigure(coln, weight = colweight)
+
+        getattr(self, attr).grid(row = rown, rowspan = height + 1, column = coln, columnspan = width + 1, sticky = grab)
+        tmp = getattr(self, attr)
+        tmp.constructField = types.MethodType(Application.constructField, tmp)
 
     def createWidgets(self):
         pass
