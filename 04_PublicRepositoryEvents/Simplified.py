@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 '''
+Решение первой задачи из README
 '''
 
 import time
@@ -8,6 +9,9 @@ from tkinter.messagebox import showinfo
 import types
 
 def construct(obj, attr):
+    '''
+    __getattr__ для вспомогательного класса, чтобы подвязывался правильный self
+    '''
     return lambda what, geo, **args: obj.constructField(attr, what, geo, **args)
 
 class Application(tk.Frame):
@@ -16,6 +20,7 @@ class Application(tk.Frame):
         if 'title' in args:
             self.master.title(args['title'])
 
+        # initial setup to make everything dynamic
         self.grid(sticky = 'NEWS')
 
         top = self.winfo_toplevel()
@@ -27,12 +32,17 @@ class Application(tk.Frame):
         self.columnconfigure(0, weight = 1)
         self.columnconfigure(1, weight = 1)
 
+        # else the window will be empty
         self.createWidgets()
     
     def __getattr__(self, attr):
         return lambda what, geo, **args: self.constructField(attr, what, geo, **args)
 
     def constructField(self, attr, what, geo, **args):
+        '''
+        Создать новое поле-виджет, поддерживающее возможность 
+        создавать новые поля таким же образом
+        '''
         setattr(self, attr, type(what.__name__ + 'Intermediate', (what,),\
                 {'__getattr__' : construct, 'constructField' : Application.constructField})(self, **args))
         tmp = geo.split('/')
