@@ -188,7 +188,7 @@ class Application(tk.Frame):
             except:
                 txtwid.tag_add('errorTag', '{}.0'.format(i), '{}.end'.format(i))
                 continue
-            if is_hex_color(tmp[5]) == False or is_hex_color(tmp[6]) == False:
+            if is_hex_color(tmp[5]) == None or is_hex_color(tmp[6]) == None:
                 txtwid.tag_add('errorTag', '{}.0'.format(i), '{}.end'.format(i))
                 continue
             wid.ovals.append(wid.create_oval(x1, y1, x2, y2, fill = tmp[6], outline = tmp[5], width = w))
