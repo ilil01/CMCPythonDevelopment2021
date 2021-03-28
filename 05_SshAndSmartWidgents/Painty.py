@@ -1,22 +1,28 @@
 #!/usr/bin/python3
 
 import tkinter as tk
-from tkinter.messagebox import showinfo
-import types
 from tkinter import font
-from matplotlib.colors import is_color_like
 import re
 HEX_COLORS = re.compile(r'^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6}|[A-Fa-f0-9]{9})$')
 
 
 def is_hex_color(s):
+    '''
+    Checks if string define color in #r[rr]g[gg]b[bb] format
+    Other formats omitted for simplicity
+    '''
     return HEX_COLORS.search(s)
 
 def isPointInsideEllipse(x, y, x1, y1, x2, y2):
+    '''
+    Checks if given point (x, y) is inside the ellips
+    defined by its border-rectangle (x1, y1, x2, y2)
+    '''
     h = (x1 + x2) // 2
     k = (y1 + y2) // 2
     rx = abs(x2 - x1) // 2
     ry = abs(y2 - y1) // 2
+    # Border rectangle can become line
     if rx == 0 or ry == 0:
         return x1 <= x <= x2 and y1 <= y <= y2
     return ((x - h)/rx)**2 + ((y - k)/ry)**2 <= 1
@@ -27,7 +33,6 @@ def initDrawOval(event):
     Else create a new one and rewrite it instead.
     '''
     wid = event.widget
-#    wid.cur = len(wid.ovals)
     for i in wid.ovals:
         crds = wid.coords(i)
         if isPointInsideEllipse(event.x, event.y, crds[0], crds[1], crds[2], crds[3]):
@@ -44,6 +49,9 @@ def initDrawOval(event):
     wid.curPosVer = 0
 
 def moveOval(event):
+    '''
+    Move current ellipse using mouse motion
+    '''
     wid = event.widget
     if wid.cur != -1:
         wid.move(wid.cur, event.x - wid.prev_x, event.y - wid.prev_y)
@@ -51,37 +59,39 @@ def moveOval(event):
         wid.prev_y = event.y
 
 def drawOval(event):
-    '''Draws an orange blob in self.canv where the mouse is.
     '''
-    #r = 5   # Blob radius
+    Change current ellips'es border-rectangle.
+    Try to save initial point unchanged
+    '''
     wid = event.widget
-    #wid.create_oval(event.x-r, event.y-r,
-    #    event.x+r, event.y+r, fill='orange')
     if wid.cur != -1:
-#        wid.itemconfigure(wid.cur,)
-        crds = list(wid.coords(wid.cur))    # []
+        crds = list(wid.coords(wid.cur))    # [x1, y1, x2, y2]
 
         if crds[0] > event.x:
-            #crds[2] = crds[0]
+            # left border is being changed
             wid.curPosHor = 1   # left
             crds[0] = event.x
         elif crds[2] < event.x:
+            # right border is being changed
             wid.curPosHor = 0   # right
             crds[2] = event.x
         else:
+            # which border is being changed depends on past
             if wid.curPosHor == 0:
                 crds[2] = event.x
             else:
                 crds[0] = event.x
 
         if crds[1] > event.y:
-            #crds[2] = crds[0]
+            # upper border is being changed
             wid.curPosVer = 1   # up
             crds[1] = event.y
         elif crds[3] < event.y:
+            # lower border is being changed
             wid.curPosVer = 0   # bottom
             crds[3] = event.y
         else:
+            # which border is being changed depends on past
             if wid.curPosVer == 0:
                 crds[3] = event.y
             else:
@@ -90,6 +100,9 @@ def drawOval(event):
         wid.coords(wid.cur, crds[0], crds[1], crds[2], crds[3])
 
 def stopDrawOval(event):
+    '''
+    Prevent motion-handlers from doing anything anymore
+    '''
     event.widget.cur = -1
 
 class Application(tk.Frame):
@@ -117,8 +130,6 @@ class Application(tk.Frame):
         self.quitButton.grid(row = 1, column = 2, sticky = 'W')
 
         text_font = font.Font(family="Consolas", size=10, weight="normal")
-        #text = "some text"
-        #text_len = text_font.measure(text)
         self.textPart.textWidget = tk.Text(self.textPart, cursor = 'xterm', font = text_font, insertbackground = 'black', bg = 'white', fg = 'black')
         self.textPart.textWidget.grid(sticky = 'NEWS')
         self.textPart.textWidget.tag_config('errorTag', background = '#f00')
@@ -128,8 +139,6 @@ class Application(tk.Frame):
         self.graphicPart.canvasWidget.ovals = []
         self.graphicPart.canvasWidget.cur = -1
         self.graphicPart.canvasWidget.bind('<Button-1>', initDrawOval)
-        #self.graphicPart.canvasWidget.bind('<Motion>', drawOval)
-        #self.graphicPart.canvasWidget.bind('<ButtonRelease-1>', lambda e: e.widget.cur = -1)
         self.graphicPart.canvasWidget.bind('<ButtonRelease-1>', stopDrawOval)
 
         self.updateTextButton = tk.Button(self, text = 'Update', command = self.updateText)
@@ -138,8 +147,13 @@ class Application(tk.Frame):
         self.updateGraphicButton.grid(row = 1, column = 1, sticky = 'WE')
 
     def updateText(self):
+        '''
+        Iterate through existing ellipses and describe them in .csv format
+        '''
         wid = self.graphicPart.canvasWidget
+        # We shall not accumulate old versions of text description
         self.textPart.textWidget.delete('0.0', 'end')
+        # Header
         txt =  'x1,y1,x2,y2,width,outline,fill\n'
         for i in self.graphicPart.canvasWidget.ovals:
             crds = wid.coords(i)
@@ -148,11 +162,15 @@ class Application(tk.Frame):
         self.textPart.textWidget.insert('0.0', txt)
 
     def updateGraphic(self):
+        '''
+        Iterate through lines of text description and create described ellipses.
+        Mark erroneous lines. Skip header and last 2 empty lines
+        '''
         wid = self.graphicPart.canvasWidget
         txtwid = self.textPart.textWidget
+        # We shall not accumulate non-relevant information about errors
         txtwid.tag_remove('errorTag', '0.0', 'end')
         txt = self.textPart.textWidget.get('0.0', 'end').split('\n')
-        errored = False
         for i in wid.ovals:
             wid.delete(i)
         wid.ovals = []
@@ -160,7 +178,6 @@ class Application(tk.Frame):
             tmp = line.split(',')
             if len(tmp) != 7:
                 txtwid.tag_add('errorTag', '{}.0'.format(i), '{}.end'.format(i))
-                errored = True
                 continue
             try:
                 x1 = int(tmp[0])
@@ -170,12 +187,9 @@ class Application(tk.Frame):
                 w = float(tmp[4])
             except:
                 txtwid.tag_add('errorTag', '{}.0'.format(i), '{}.end'.format(i))
-                errored = True
                 continue
-            #if is_color_like(tmp[5]) == False or is_color_like(tmp[6]) == False:
             if is_hex_color(tmp[5]) == False or is_hex_color(tmp[6]) == False:
                 txtwid.tag_add('errorTag', '{}.0'.format(i), '{}.end'.format(i))
-                errored = True
                 continue
             wid.ovals.append(wid.create_oval(x1, y1, x2, y2, fill = tmp[6], outline = tmp[5], width = w))
 
