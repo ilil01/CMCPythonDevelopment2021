@@ -107,7 +107,7 @@ class Application(tk.Frame):
         self.graphicPart = tk.LabelFrame(self, text = 'Graphic view')
         self.graphicPart.grid(row = 0, column = 1, sticky = 'NEWS')
         self.quitButton = tk.Button(self, text = 'Quit', command = self.quit, cursor = 'X_cursor')
-        self.quitButton.grid(row = 1, column = 1, sticky = 'E')
+        self.quitButton.grid(row = 1, column = 2, sticky = 'W')
 
         text_font = font.Font(family="Consolas", size=10, weight="normal")
         #text = "some text"
@@ -123,6 +123,25 @@ class Application(tk.Frame):
         #self.graphicPart.canvasWidget.bind('<Motion>', drawOval)
         #self.graphicPart.canvasWidget.bind('<ButtonRelease-1>', lambda e: e.widget.cur = -1)
         self.graphicPart.canvasWidget.bind('<ButtonRelease-1>', stopDrawOval)
+
+        self.updateTextButton = tk.Button(self, text = 'Update', command = self.updateText)
+        self.updateTextButton.grid(row = 1, column = 0, sticky = 'WE')
+        self.updateGraphicButton = tk.Button(self, text = 'Update', command = self.updateGraphic)
+        self.updateGraphicButton.grid(row = 1, column = 1, sticky = 'WE')
+
+    def updateText(self):
+        wid = self.graphicPart.canvasWidget
+        self.textPart.textWidget.delete('0.0', 'end')
+        txt =  'x1,y1,x2,y2,width,outline,fill\n'
+        for i in self.graphicPart.canvasWidget.ovals:
+            crds = wid.coords(i)
+            opts = wid.itemconfigure(i)
+            txt += '{},{},{},{},{},{},{}\n'.format(crds[0], crds[1], crds[2], crds[3], opts['width'][-1], opts['outline'][-1], opts['fill'][-1])
+        self.textPart.textWidget.insert('0.0', txt)
+
+    def updateGraphic(self):
+        txt = self.textPart.textWidget.get(0)
+        print (txt)
 
 app = Application(title="Painty")
 app.mainloop()
