@@ -4,6 +4,13 @@ import tkinter as tk
 from tkinter.messagebox import showinfo
 import types
 from tkinter import font
+from matplotlib.colors import is_color_like
+import re
+HEX_COLORS = re.compile(r'^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6}|[A-Fa-f0-9]{9})$')
+
+
+def is_hex_color(s):
+    return HEX_COLORS.search(s)
 
 def isPointInsideEllipse(x, y, x1, y1, x2, y2):
     h = (x1 + x2) // 2
@@ -30,7 +37,7 @@ def initDrawOval(event):
             wid.bind('<Motion>', moveOval)
             return
 
-    wid.ovals.append(wid.create_oval(event.x, event.y, event.x, event.y, fill = 'red'))
+    wid.ovals.append(wid.create_oval(event.x, event.y, event.x, event.y, fill = '#F00', outline = '#000'))
     wid.cur = wid.ovals[-1]
     wid.bind('<Motion>', drawOval)
     wid.curPosHor = 0
@@ -114,6 +121,7 @@ class Application(tk.Frame):
         #text_len = text_font.measure(text)
         self.textPart.textWidget = tk.Text(self.textPart, cursor = 'xterm', font = text_font, insertbackground = 'black', bg = 'white', fg = 'black')
         self.textPart.textWidget.grid(sticky = 'NEWS')
+        self.textPart.textWidget.tag_config('errorTag', background = '#f00')
 
         self.graphicPart.canvasWidget = tk.Canvas(self.graphicPart)
         self.graphicPart.canvasWidget.grid(sticky = 'NEWS')
@@ -136,12 +144,40 @@ class Application(tk.Frame):
         for i in self.graphicPart.canvasWidget.ovals:
             crds = wid.coords(i)
             opts = wid.itemconfigure(i)
-            txt += '{},{},{},{},{},{},{}\n'.format(crds[0], crds[1], crds[2], crds[3], opts['width'][-1], opts['outline'][-1], opts['fill'][-1])
+            txt += '{},{},{},{},{},{},{}\n'.format(int(crds[0]), int(crds[1]), int(crds[2]), int(crds[3]), opts['width'][-1], opts['outline'][-1], opts['fill'][-1])
         self.textPart.textWidget.insert('0.0', txt)
 
     def updateGraphic(self):
-        txt = self.textPart.textWidget.get(0)
-        print (txt)
+        wid = self.graphicPart.canvasWidget
+        txtwid = self.textPart.textWidget
+        txtwid.tag_remove('errorTag', '0.0', 'end')
+        txt = self.textPart.textWidget.get('0.0', 'end').split('\n')
+        errored = False
+        for i in wid.ovals:
+            wid.delete(i)
+        wid.ovals = []
+        for i, line in enumerate(txt[1:-2], start = 2):
+            tmp = line.split(',')
+            if len(tmp) != 7:
+                txtwid.tag_add('errorTag', '{}.0'.format(i), '{}.end'.format(i))
+                errored = True
+                continue
+            try:
+                x1 = int(tmp[0])
+                y1 = int(tmp[1])
+                x2 = int(tmp[2])
+                y2 = int(tmp[3])
+                w = float(tmp[4])
+            except:
+                txtwid.tag_add('errorTag', '{}.0'.format(i), '{}.end'.format(i))
+                errored = True
+                continue
+            #if is_color_like(tmp[5]) == False or is_color_like(tmp[6]) == False:
+            if is_hex_color(tmp[5]) == False or is_hex_color(tmp[6]) == False:
+                txtwid.tag_add('errorTag', '{}.0'.format(i), '{}.end'.format(i))
+                errored = True
+                continue
+            wid.ovals.append(wid.create_oval(x1, y1, x2, y2, fill = tmp[6], outline = tmp[5], width = w))
 
 app = Application(title="Painty")
 app.mainloop()
