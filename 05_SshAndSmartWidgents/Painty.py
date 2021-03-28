@@ -21,7 +21,10 @@ class Application(tk.Frame):
         self.createWidgets()
 
     def createWidgets(self):
-        pass
+        self.textPart = tk.LabelFrame(self, text = 'Text description')
+        self.textPart.grid(row = 0, column = 0, sticky = 'NEWS')
+        self.graphicPart = tk.LabelFrame(self, text = 'Graphic view')
+        self.graphicPart.grid(row = 0, column = 1, sticky = 'NEWS')
 
 app = Application(title="Painty")
 app.mainloop()
