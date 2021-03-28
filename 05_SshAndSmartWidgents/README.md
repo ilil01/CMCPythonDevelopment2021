@@ -13,4 +13,4 @@
 * Остальное — необязательно.
 
 /*![Alt text](http://uneex.ru/LecturesCMC/PythonDevelopment2021/05_SshAndSmartWidgents?action=AttachFile&do=get&target=o.mp4)*/
-![Source](http://uneex.ru/LecturesCMC/PythonDevelopment2021/05_SshAndSmartWidgents)
+[Source](http://uneex.ru/LecturesCMC/PythonDevelopment2021/05_SshAndSmartWidgents)
