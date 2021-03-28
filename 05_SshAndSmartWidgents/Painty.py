@@ -5,6 +5,15 @@ from tkinter.messagebox import showinfo
 import types
 from tkinter import font
 
+def isPointInsideEllipse(x, y, x1, y1, x2, y2):
+    h = (x1 + x2) // 2
+    k = (y1 + y2) // 2
+    rx = abs(x2 - x1) // 2
+    ry = abs(y2 - y1) // 2
+    if rx == 0 or ry == 0:
+        return x1 <= x <= x2 and y1 <= y <= y2
+    return ((x - h)/rx)**2 + ((y - k)/ry)**2 <= 1
+
 def initDrawOval(event):
     '''
     If clicked inside existing oval start rewriting its coordinates.
@@ -12,11 +21,27 @@ def initDrawOval(event):
     '''
     wid = event.widget
 #    wid.cur = len(wid.ovals)
+    for i in wid.ovals:
+        crds = wid.coords(i)
+        if isPointInsideEllipse(event.x, event.y, crds[0], crds[1], crds[2], crds[3]):
+            wid.cur = i
+            wid.prev_x = event.x
+            wid.prev_y = event.y
+            wid.bind('<Motion>', moveOval)
+            return
+
     wid.ovals.append(wid.create_oval(event.x, event.y, event.x, event.y, fill = 'red'))
     wid.cur = wid.ovals[-1]
     wid.bind('<Motion>', drawOval)
     wid.curPosHor = 0
     wid.curPosVer = 0
+
+def moveOval(event):
+    wid = event.widget
+    if wid.cur != -1:
+        wid.move(wid.cur, event.x - wid.prev_x, event.y - wid.prev_y)
+        wid.prev_x = event.x
+        wid.prev_y = event.y
 
 def drawOval(event):
     '''Draws an orange blob in self.canv where the mouse is.
